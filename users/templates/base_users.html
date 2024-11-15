@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlickNest</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans">
+
+    <!-- Navbar -->
+    <header class="flex items-center justify-between p-4 border-b border-gray-700">
+    <!-- Mobile menu button -->
+    <button id="menuBtn" class="lg:hidden text-gray-200 focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        </svg>
+    </button>
+    <!-- Logo -->
+    <h1 class="text-lg font-bold">FlickNest</h1>
+    <!-- Navbar Links -->
+    <nav class="hidden lg:flex space-x-4">
+        <a href="{% url 'dashboard' %}" class="hover:text-white">Home</a>
+        <a href="{% url 'movies' %}" class="hover:text-white">Movies</a>
+        {% if user.is_authenticated %}
+        {% endif %}
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="hover:text-white">Favorites</a>
+        <a href="{% url 'watch_rooms' %}" class="hover:text-white">Watch Rooms</a>
+        <a href="{% url 'profile' %}" class="hover:text-white">Profile</a>
+        <a href="{% url 'logout' %}" class="hover:text-white">Logout</a>
+        {% else %}
+        <a href="{% url 'login' %}" class="hover:text-white">Login</a>
+        {% endif %}
+    </nav>
+    </header>
+
+    <!-- Mobile Sidebar -->
+    <aside id="mobileMenu" class="fixed top-0 left-0 w-3/4 h-full bg-gray-800 transform -translate-x-full transition-transform duration-300 lg:hidden">
+    <div class="p-4">
+        <button id="closeMenu" class="text-gray-200">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+        </button>
+    </div>
+    <nav class="flex flex-col space-y-4 p-4">
+        <a href="{% url 'dashboard' %}" class="text-gray-200 hover:text-white">Home</a>
+        <a href="{% url 'movies' %}" class="text-gray-200 hover:text-white">Movies</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="text-gray-200 hover:text-white">Favorites</a>
+        <a href="{% url 'watch_rooms' %}" class="text-gray-200 hover:text-white">Watch Rooms</a>
+        <a href="{% url 'profile' %}" class="text-gray-200 hover:text-white">Profile</a>
+        <a href="{% url 'logout' %}" class="text-gray-200 hover:text-white">Logout</a>
+        {%else%}
+        <a href="{% url 'login' %}" class="text-gray-200 hover:text-white">Login</a>
+        {% endif %}
+    </nav>
+    </aside>
+    {% block content %}
+
+    
+    {% endblock %}
+</main>
+<script>
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const closeMenu = document.getElementById('closeMenu');
+
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('-translate-x-full');
+    });
+
+    closeMenu.addEventListener('click', () => {
+      mobileMenu.classList.add('-translate-x-full');
+    });
+  </script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

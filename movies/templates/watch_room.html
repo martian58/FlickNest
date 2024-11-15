@@ -1,0 +1,121 @@
+{% extends "base_users.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mx-auto p-6 lg:px-20 mt-8">
+  <!-- Movie Player Section -->
+  <div class="flex flex-col lg:flex-row lg:space-x-8">
+    <!-- Video Player -->
+    <div class="flex-1 mb-6 lg:mb-0">
+      {% if movie.movie_file %}
+      <video id="movie-player" controls class="w-full h-72 md:h-96 lg:h-auto rounded-lg shadow-lg">
+        <source src="{{ movie.movie_file.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      {% endif %}
+    </div>
+
+    <!-- Movie Details -->
+    <div class="lg:w-1/3 bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold text-white">{{ movie.title }}</h2>
+      <p class="text-gray-400 mt-2">{{ movie.release_date|date:"F j, Y" }} | {{ movie.language }}</p>
+      <p class="text-gray-400 mt-2">{{ movie.genre }}</p>
+      <p class="text-yellow-500 mt-2 flex items-center">
+        <svg class="w-5 h-5 mr-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M10 15l-3.09 1.82 1.18-4.09-3.27-2.36 4.22-.35L10 5l1.96 4.02 4.22.35-3.27 2.36 1.18 4.09L10 15z"/>
+        </svg>
+        {{ movie.rating }}/10
+      </p>
+      <p class="mt-4 text-gray-300">{{ movie.description }}</p>
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold text-white">Cast</h3>
+        <p class="text-gray-400">{{ movie.actors }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group Chat Section -->
+  <div class="mt-12">
+    <h3 class="text-2xl font-semibold text-white">Group Chat</h3>
+    <div id="chat-container" class="bg-gray-700 p-6 rounded-lg shadow-lg max-h-96 overflow-y-scroll mt-4">
+      {% for message in messages %}
+        <div class="message mb-4">
+          <p class="text-yellow-400 font-semibold">{{ message.sender.username }}:</p>
+          <p class="text-gray-300">{{ message.content }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Message Input Section -->
+    <form id="message-form" class="mt-4 flex items-center">
+      <input type="text" id="message-input" class="w-full p-2 rounded-lg bg-gray-800 text-white" placeholder="Type your message..." required>
+      <button type="submit" class="ml-4 bg-blue-600 text-white px-4 py-2 rounded-lg">Send</button>
+    </form>
+
+    <!-- Users in the Group -->
+    <div class="mt-6">
+      <h3 class="text-xl font-semibold text-white">Users in this Watch Room:</h3>
+      <ul class="list-disc list-inside text-gray-300 mt-4">
+        {% for user in watch_room.users_in_room.all %}
+          <li>{{ user.username }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Handle form submission for sending messages
+  const messageForm = document.getElementById('message-form');
+  const messageInput = document.getElementById('message-input');
+  messageForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const content = messageInput.value;
+
+    fetch("{% url 'send_watch_room_message' watch_room.id %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: content })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const chatContainer = document.getElementById('chat-container');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', 'mb-4');
+        messageDiv.innerHTML = `<p class="text-yellow-400 font-semibold">${data.username}:</p><p class="text-gray-300">${data.content}</p>`;
+        chatContainer.appendChild(messageDiv);
+        messageInput.value = ''; // Clear input field
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
+      } else {
+        alert("Error sending message.");
+      }
+    })
+    .catch(error => console.error('Error sending message:', error));
+  });
+
+  // Periodically fetch new messages from the server
+  function fetchMessages() {
+    fetch("{% url 'fetch_watch_room_messages' watch_room.id %}")
+      .then(response => response.json())
+      .then(data => {
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.innerHTML = ''; // Clear current messages
+        data.messages.forEach(message => {
+          const messageDiv = document.createElement('div');
+          messageDiv.classList.add('message', 'mb-4');
+          messageDiv.innerHTML = `<p class="text-yellow-400 font-semibold">${message.sender}:</p><p class="text-gray-300">${message.content}</p>`;
+          chatContainer.appendChild(messageDiv);
+        });
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
+      })
+      .catch(error => console.error('Error fetching messages:', error));
+  }
+
+  // Set an interval to fetch messages every 1 second
+  setInterval(fetchMessages, 1000);
+</script>
+{% endblock %}

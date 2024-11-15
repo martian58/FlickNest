@@ -1,0 +1,33 @@
+{% extends "base_users.html" %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold text-center text-gray-100 mb-6">Your Watch Rooms</h1>
+    
+    {% if watch_rooms %}
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {% for room in watch_rooms %}
+                <div class="relative bg-gray-800 p-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                    <!-- Movie Poster Image -->
+                    {% if room.movie_in_room.poster_image %}
+                        <a href="{% url 'watch_room' room.id %}">
+                            <img src="{{ room.movie_in_room.poster_image.url }}" alt="{{ room.movie_in_room.title }}" class="w-full h-64 object-cover rounded-lg mb-4">
+                        </a>
+                    {% endif %}
+                    
+                    <!-- Room Name -->
+                    <h2 class="text-lg font-semibold text-yellow-400">{{ room.room_name }}</h2>
+                    <p class="text-gray-400">Users in Room: <span class="text-gray-200">{{ room.get_users_in_room_count }}</span></p>
+                    
+                    <!-- Go to Room Button -->
+                    <a href="{% url 'watch_room' room.id %}" class="block mt-4 text-center bg-yellow-500 text-gray-900 font-semibold py-2 rounded-md hover:bg-yellow-400 transition-colors">
+                        Go to Room
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-400 mt-6">You are not part of any watch rooms yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

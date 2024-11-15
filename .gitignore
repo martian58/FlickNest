@@ -2,10 +2,13 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+assets
+media/posters
+media/movies
+media/profile_pics
 # C extensions
 *.so
-
+download_youtube_video.py
 # Distribution / packaging
 .Python
 build/

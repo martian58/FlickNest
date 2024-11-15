@@ -1,0 +1,79 @@
+{% extends 'base_users.html' %}
+{% load static %}
+
+{% block title %}Find Your Friends{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css">
+
+<div class="flex items-center justify-center min-h-screen bg-gray-900">
+  <div class="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-md">
+    <h1 class="text-2xl font-semibold text-center text-gray-100 mb-6">Find Your Friends</h1>
+    <form id="search-form" method="POST">
+      {% csrf_token %}
+      <div>
+        <input type="text" name="search-term" id="search-term" placeholder="Enter username or email"
+          class="w-full p-2 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+      </div>
+      <div id="error-message" class="text-red-500 text-center mb-4 hidden"></div>
+      <button type="submit" class="w-full py-2 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        Search
+      </button>
+    </form>
+    <div id="search-results" class="mt-4">
+      <!-- Search results will be appended here -->
+    </div>
+    <p class="text-center text-gray-400 mt-4">
+      Looking for someone? Enter their username or email to find them!
+    </p>
+  </div>
+</div>
+
+<script>
+  document.getElementById('search-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+    try {
+      const response = await fetch("{% url 'search_users' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const searchResultsContainer = document.getElementById('search-results');
+        searchResultsContainer.innerHTML = ''; // Clear previous results
+
+        if (data.users.length > 0) {
+          data.users.forEach(user => {
+            const userElement = document.createElement('div');
+            userElement.className = 'text-white p-2 border-b border-gray-700 hover:bg-gray-700 transition';
+            userElement.innerHTML = `<a href="/users/profile/${user.id}/" class="flex justify-between">
+              <span>${user.first_name} ${user.last_name}</span>
+            </a>`;
+            searchResultsContainer.appendChild(userElement);
+          });
+        } else {
+          searchResultsContainer.innerHTML = '<p class="text-gray-400">No users found.</p>';
+        }
+      } else {
+        const data = await response.json();
+        const errorMessage = data.error || 'Search failed. Please try again.';
+        document.getElementById('error-message').textContent = errorMessage;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    } catch (error) {
+      document.getElementById('error-message').textContent = 'An error occurred. Please try again later.';
+      document.getElementById('error-message').classList.remove('hidden');
+    }
+  });
+</script>
+{% endblock %}

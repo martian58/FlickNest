@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold text-center text-gray-100 mb-6">Create Watch Room</h1>
+    
+    <form id="create-room-form" class="space-y-4 bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg mx-auto">
+        <!-- Room Name -->
+        <div>
+            <label for="room-name" class="block text-gray-300 font-semibold mb-2">Room Name</label>
+            <input type="text" id="room-name" class="w-full px-3 py-2 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Enter a room name" required>
+        </div>
+
+        <!-- Select Friends -->
+        <div>
+            <label for="friends" class="block text-gray-300 font-semibold mb-2">Invite Friends</label>
+            <select id="friends" multiple class="w-full px-3 py-2 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                {% for friend in friends %}
+                    <option value="{{ friend.id }}">{{ friend.username }}</option>
+                {% endfor %}
+            </select>
+            <p class="text-sm text-gray-400 mt-1">Hold Ctrl (Cmd on Mac) to select multiple friends.</p>
+        </div>
+
+        <!-- Select Movie -->
+        <div>
+            <label for="movie" class="block text-gray-300 font-semibold mb-2">Choose a Movie</label>
+            <select id="movie" class="w-full px-3 py-2 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                {% for movie in movies %}
+                    <option value="{{ movie.id }}">{{ movie.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center">
+            <button type="button" id="create-room-btn" class="px-4 py-2 bg-yellow-500 text-gray-900 font-semibold rounded-md hover:bg-yellow-400 transition-colors">Create Room</button>
+        </div>
+        
+        <!-- Message -->
+        <p id="message" class="text-center text-sm mt-4 text-gray-400"></p>
+    </form>
+</div>
+
+<script>
+document.getElementById('create-room-btn').addEventListener('click', () => {
+    const roomName = document.getElementById('room-name').value;
+    const selectedFriends = Array.from(document.getElementById('friends').selectedOptions).map(option => option.value);
+    const movieId = document.getElementById('movie').value;
+    const messageEl = document.getElementById('message');
+
+    if (roomName && movieId) {
+        fetch("{% url 'create_watch_room' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                room_name: roomName,
+                users_in_room_ids: selectedFriends,
+                movie_in_room_id: movieId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messageEl.textContent = "Watch room created successfully!";
+                messageEl.classList.replace("text-gray-400", "text-green-400");
+                // Optionally, redirect or reset the form
+                document.getElementById('create-room-form').reset();
+            } else {
+                messageEl.textContent = "Failed to create watch room. Please try again.";
+                messageEl.classList.replace("text-gray-400", "text-red-400");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            messageEl.textContent = "An error occurred. Please try again.";
+            messageEl.classList.replace("text-gray-400", "text-red-400");
+        });
+    } else {
+        messageEl.textContent = "Please fill out all required fields.";
+        messageEl.classList.replace("text-gray-400", "text-red-400");
+    }
+});
+</script>
+{% endblock %}

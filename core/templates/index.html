@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlickNest - Welcome</title>
+  <!-- Tailwind CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans flex flex-col items-center justify-center min-h-screen">
+
+  <!-- Main Content -->
+  <main class="text-center px-4">
+    <h2 class="text-4xl md:text-5xl font-bold text-gray-100 mb-6">Welcome to FlickNest</h2>
+    <p class="text-gray-400 text-lg md:text-xl mb-4">The best movie watching platform out there 😊</p>
+    <p class="text-gray-300 mb-8">Discover movies, track your favorites, and connect with friends.</p>
+    <a href="{% url 'login' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-200">Get Started</a>
+  </main>
+
+</body>
+</html>
