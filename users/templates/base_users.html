@@ -27,8 +27,7 @@
         <a href="{% url 'dashboard' %}" class="hover:text-white">Home</a>
         <a href="{% url 'movies' %}" class="hover:text-white">Movies</a>
         {% if user.is_authenticated %}
-        {% endif %}
-        {% if user.is_authenticated %}
+        <a href="{% url 'find-users' %}" class="hover:text-white">Find Friends</a>
         <a href="{% url 'dashboard' %}" class="hover:text-white">Favorites</a>
         <a href="{% url 'watch_rooms' %}" class="hover:text-white">Watch Rooms</a>
         <a href="{% url 'profile' %}" class="hover:text-white">Profile</a>
@@ -52,6 +51,7 @@
         <a href="{% url 'dashboard' %}" class="text-gray-200 hover:text-white">Home</a>
         <a href="{% url 'movies' %}" class="text-gray-200 hover:text-white">Movies</a>
         {% if user.is_authenticated %}
+        <a href="{% url 'find-users' %}" class="hover:text-white">Find Friends</a>
         <a href="{% url 'dashboard' %}" class="text-gray-200 hover:text-white">Favorites</a>
         <a href="{% url 'watch_rooms' %}" class="text-gray-200 hover:text-white">Watch Rooms</a>
         <a href="{% url 'profile' %}" class="text-gray-200 hover:text-white">Profile</a>
