@@ -1,0 +1,37 @@
+{% extends 'base_users.html' %}
+
+{% block title %}Friends List{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold text-center text-gray-100 mb-8">Friends List</h1>
+
+  <!-- Friends Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for friend in friends %}
+      <div class="bg-gray-800 p-5 rounded-lg shadow-lg flex flex-col items-center text-center">
+        
+        <!-- Friend Profile Picture -->
+        {% if friend.profile.profile_pic %}
+          <img src="{{ friend.profile.profile_pic.url }}" alt="{{ friend.username }}" class="w-24 h-24 rounded-full mb-4 shadow-md object-cover">
+        {% else %}
+          <div class="w-24 h-24 rounded-full bg-gray-600 mb-4 flex items-center justify-center text-gray-300 font-bold text-lg shadow-md">
+            {{ friend.username|slice:":1" }}
+          </div>
+        {% endif %}
+
+        <!-- Friend Username -->
+        <h2 class="text-lg font-semibold text-gray-100">{{ friend.username }}</h2>
+        <p class="text-sm text-gray-400">Friend since {{ friend.date_joined|date:"F Y" }}</p>
+
+        <!-- View Profile Button -->
+        <a href="{% url 'profile_by_id' friend.id %}" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200">
+          View Profile
+        </a>
+      </div>
+    {% empty %}
+      <p class="col-span-full text-gray-400 text-center">You have no friends yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base_users.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css">
+<link rel="stylesheet" href="{% static 'css/accounts/login.css' %}">
+
+<div class="flex items-center justify-center min-h-screen bg-gray-900">
+  <div class="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-md">
+    <h1 class="text-2xl font-semibold text-center text-gray-100 mb-6">Login</h1>
+    <div id="error-message" class="text-red-500 text-center mb-4 hidden"></div>
+    <form id="login-form" method="POST" class="space-y-4">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="w-full py-2 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        Login
+      </button>
+      <p class="text-center text-gray-400">
+        Don't have an account? 
+        <a href="{% url 'register' %}" class="text-blue-400 hover:underline">Sign up</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('login-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+    try {
+      const response = await fetch("{% url 'login' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        window.location.href = "/dashboard";  // Redirect to home or another desired page
+      } else {
+        const data = await response.json();
+        const errorMessage = data.error || 'Login failed. Please try again.';
+        document.getElementById('error-message').textContent = errorMessage;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    } catch (error) {
+      document.getElementById('error-message').textContent = 'An error occurred. Please try again later.';
+      document.getElementById('error-message').classList.remove('hidden');
+    }
+  });
+</script>
+{% endblock %}

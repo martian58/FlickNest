@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mx-auto p-6 lg:px-20 mt-8">
+  <!-- Movie Player Section -->
+  <div class="flex flex-col lg:flex-row lg:space-x-8">
+    <!-- Video Player -->
+    <div class="flex-1 mb-6 lg:mb-0">
+       <!-- Local Video Player -->
+         {% if movie.movie_file %}
+         <video controls class="w-full h-72 md:h-96 lg:h-auto rounded-lg shadow-lg">
+          <source src="{{ movie.movie_file.url }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>       
+          {% endif %}
+    </div>
+
+    <!-- Movie Details -->
+    <div class="lg:w-1/3 bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold text-white">{{ movie.title }}</h2>
+      <p class="text-gray-400 mt-2">{{ movie.release_date|date:"F j, Y" }} | {{ movie.language }}</p>
+      <p class="text-gray-400 mt-2">{{ movie.genre }}</p>
+      <p class="text-yellow-500 mt-2 flex items-center">
+        <svg class="w-5 h-5 mr-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M10 15l-3.09 1.82 1.18-4.09-3.27-2.36 4.22-.35L10 5l1.96 4.02 4.22.35-3.27 2.36 1.18 4.09L10 15z"/>
+        </svg>
+        {{ movie.rating }}/10
+      </p>
+      <p class="mt-4 text-gray-300">{{ movie.description }}</p>
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold text-white">Cast</h3>
+        <p class="text-gray-400">{{ movie.actors }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggested Movies Section -->
+  <div class="mt-12">
+    <h3 class="text-2xl font-semibold text-white">More Like This</h3>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+      {% for similar_movie in similar_movies %}
+      <a href="{% url 'watch' similar_movie.id %}" class="group bg-gray-800 p-3 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+        <img src="{{ similar_movie.poster_image.url }}" alt="{{ similar_movie.title }}" class="rounded-lg h-52 w-full object-cover group-hover:opacity-90 transition duration-300">
+        <h4 class="mt-2 text-white font-semibold text-lg">{{ similar_movie.title }}</h4>
+        <p class="text-gray-400 text-sm">{{ similar_movie.release_date|date:"Y" }} | {{ similar_movie.genre }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'base_users.html' %}
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css">
+
+<div class="min-h-screen bg-gray-900 text-gray-200 py-10 px-4">
+  <!-- Profile Header -->
+  <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="flex items-center space-x-6 mb-6">
+      <!-- Profile Picture -->
+       {% if user.profile.profile_pic %}
+      <img src="{{ user.profile.profile_pic.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full shadow-lg">
+      {% else %}
+      <img src="{% static "images/female-default-profile.webp" %}" alt="Profile Picture" class="w-24 h-24 rounded-full shadow-lg">
+      {% endif %}
+      <!-- User Info -->
+      <div>
+        <h2 class="text-2xl font-bold">{{ user.first_name }} {{ user.last_name }}</h2>
+        <p class="text-gray-400">Movie Enthusiast & Reviewer</p>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="grid grid-cols-3 gap-4 text-center mb-6">
+      <div>
+        <a href="{% url 'friend_list' user.id %}"><h3 class="text-xl font-semibold">Friends</h3></a>
+        <p class="text-blue-400">{{ user.profile.get_friend_count }}</p>
+      </div>
+      <div>
+        <h3 class="text-xl font-semibold">Starred Movies</h3>
+        <p class="text-blue-400">{{ user.profile.get_starred_movie_count }}</p>
+      </div>
+      <div>
+        <h3 class="text-xl font-semibold">Watched Movies</h3>
+        <p class="text-blue-400">{{ user.profile.get_watched_movie_count }}</p>
+      </div>
+    </div>
+
+    <!-- Profile Actions -->
+    <div class="flex justify-center space-x-4 mb-6">
+        {% if request.user.id != user.id %}
+        <button   
+              id="add-friend-btn" 
+              data-user-id="{{ user.id }}" 
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">
+              Add Friend
+          </button>
+        <a href={% url 'chat_view' user.id %} class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600">Send Message</button>
+        {% endif %}
+    </div>
+  </div>
+
+  <!-- Movie Sections -->
+  <div class="max-w-4xl mx-auto mt-8 space-y-8">
+    <!-- Liked Movies Section -->
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+      <h3 class="text-xl font-semibold mb-4">Starred Movies</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {% if user == request.user %}
+          {% for movie in request.user.profile.starred_movies.all %}
+          <div class="bg-gray-700 rounded-md p-4">
+            <img src="{{ movie.poster_image.url }}" alt="{{ movie.title }}" class="w-full h-32 object-cover rounded-md mb-2">
+            <h4 class="text-md font-semibold">{{ movie.title }}</h4>
+          </div>
+          {% empty %}
+          <p class="text-center col-span-2 text-gray-400">No Starred movies yet.</p>
+          {% endfor %}
+        {% else %}
+        
+          {% for movie in user.profile.starred_movies.all %}
+          <div class="bg-gray-700 rounded-md p-4">
+            <img src="{{ movie.poster_image.url }}" alt="{{ movie.title }}" class="w-full h-32 object-cover rounded-md mb-2">
+            <h4 class="text-md font-semibold">{{ movie.title }}</h4>
+          </div>
+          {% empty %}
+          <p class="text-center col-span-2 text-gray-400">No Starred movies yet.</p>
+          {% endfor %}
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- Watched Movies Section -->
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+      <h3 class="text-xl font-semibold mb-4">Watched Movies</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {% for movie in watched_movies %}
+        <div class="bg-gray-700 rounded-md p-4">
+          <img src="{{ movie.thumbnail_url }}" alt="{{ movie.title }}" class="w-full h-32 object-cover rounded-md mb-2">
+          <h4 class="text-md font-semibold">{{ movie.title }}</h4>
+          <p class="text-gray-400 text-sm">Watched on {{ movie.watched_date }}</p>
+        </div>
+        {% empty %}
+        <p class="text-center col-span-2 text-gray-400">No movies watched yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+      <h3 class="text-xl font-semibold mb-4">Reviews</h3>
+      {% for review in reviews %}
+      <div class="bg-gray-700 p-4 rounded-md mb-4">
+        <h4 class="text-lg font-semibold">{{ review.movie_title }}</h4>
+        <p class="text-gray-400 text-sm">Reviewed on {{ review.date }}</p>
+        <p class="mt-2">{{ review.content }}</p>
+      </div>
+      {% empty %}
+      <p class="text-center text-gray-400">No reviews yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for AJAX Request -->
+<script>
+document.getElementById('add-friend-btn').addEventListener('click', function() {
+    const userId = this.getAttribute('data-user-id');
+
+    fetch(`/users/add_friend/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message); // Display a success message
+            this.classList.add('bg-green-500'); // Change button color to indicate success
+            this.textContent = 'Friend Added'; // Change button text
+            this.disabled = true; // Disable button
+        } else {
+            alert(data.message); // Display error message if any
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
+
+{% endblock %}

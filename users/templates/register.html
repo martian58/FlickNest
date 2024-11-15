@@ -1,0 +1,42 @@
+{% extends 'base_users.html' %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css">
+
+<div class="flex items-center justify-center min-h-screen bg-gray-900">
+  <div class="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-md">
+    <h1 class="text-2xl font-semibold text-center text-gray-100 mb-6">Register</h1>
+    <form method="POST" class="space-y-4">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-4">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.name == 'password1' %}
+            <small class="block mt-1 text-gray-400">At least 8 characters.</small>
+          {% elif field.name == 'password2' %}
+            <small class="block mt-1 text-gray-400">Repeat password for verification.</small>
+          {% else %}
+            {% if field.help_text %}
+              <small class="block mt-1 text-gray-400">{{ field.help_text }}</small>
+            {% endif %}
+          {% endif %}
+          {% for error in field.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit" class="w-full py-2 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        Register
+      </button>
+      <p class="text-center text-gray-400 mt-2">
+        Already have an account?
+        <a href="{% url 'login' %}" class="text-blue-400 hover:underline">Log in</a>
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base_users.html' %}
+{% load static %}
+
+{% block title %}Chat Room{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6 bg-gray-900 rounded-lg shadow-lg h-[80vh] flex flex-col">
+  <!-- Chat Header -->
+  <div class="flex items-center justify-between border-b border-gray-700 pb-3 mb-4">
+    <h1 class="text-2xl font-bold text-gray-100">Chat Room</h1>
+    <p class="text-sm text-gray-400">Welcome, {{ request.user.username }}!</p>
+  </div>
+
+  <!-- Chat Messages -->
+  <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-800 rounded-lg">
+    {% for message in messages %}
+      <div class="flex items-start space-x-4 {% if message.sender == request.user %} justify-end {% endif %}">
+        {% if message.sender != request.user %}
+          <img src="{{ message.sender.profile.profile_pic.url }}" alt="User Avatar" class="w-10 h-10 rounded-full">
+        {% endif %}
+        <div class="{% if message.sender == request.user %}text-right{% endif %}">
+          <p class="text-sm font-semibold text-gray-200">{{ message.sender.username }}</p>
+          <div class="{% if message.sender == request.user %} bg-blue-600 {% else %} bg-gray-700 {% endif %} text-gray-200 rounded-lg p-3 max-w-xs">
+            <p>{{ message.content }}</p>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ message.timestamp|date:"H:i" }}</p>
+        </div>
+        {% if message.sender == request.user %}
+          <img src="{{ request.user.profile.profile_pic.url }}" alt="User Avatar" class="w-10 h-10 rounded-full">
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Chat Input -->
+  <form id="chat-form" class="mt-4 flex space-x-2">
+    <input 
+      type="text" 
+      id="message-input" 
+      class="flex-1 p-3 bg-gray-700 text-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+      placeholder="Type your message..."
+      autocomplete="off">
+    <button 
+      type="submit" 
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition duration-200">
+      Send
+    </button>
+  </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const chatForm = document.getElementById("chat-form");
+  const messageInput = document.getElementById("message-input");
+  const chatBox = document.getElementById("chat-box");
+
+  // Scroll chat box to the bottom
+  function scrollToBottom() {
+    // chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+
+  // Append a message to the chat box
+  function appendMessage(username, profilePic, content, timestamp, isCurrentUser = false) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = "flex items-start space-x-4 " + (isCurrentUser ? "justify-end" : "");
+
+    // Profile picture
+    if (!isCurrentUser) {
+      const img = document.createElement("img");
+      img.src = profilePic;
+      img.alt = "User Avatar";
+      img.className = "w-10 h-10 rounded-full";
+      messageDiv.appendChild(img);
+    }
+
+    // Message content
+    const messageContent = document.createElement("div");
+    messageContent.className = isCurrentUser ? "text-right" : "";
+
+    const userLabel = document.createElement("p");
+    userLabel.className = "text-sm font-semibold text-gray-200";
+    userLabel.textContent = username;
+    messageContent.appendChild(userLabel);
+
+    const messageBubble = document.createElement("div");
+    messageBubble.className = (isCurrentUser ? "bg-blue-600" : "bg-gray-700") + " text-gray-200 rounded-lg p-3 max-w-xs";
+    messageBubble.innerHTML = `<p>${content}</p>`;
+    messageContent.appendChild(messageBubble);
+
+    const timeLabel = document.createElement("p");
+    timeLabel.className = "text-xs text-gray-400 mt-1";
+    timeLabel.textContent = timestamp;
+    messageContent.appendChild(timeLabel);
+
+    messageDiv.appendChild(messageContent);
+
+    // Current user's profile picture
+    if (isCurrentUser) {
+      const img = document.createElement("img");
+      img.src = profilePic;
+      img.alt = "User Avatar";
+      img.className = "w-10 h-10 rounded-full";
+      messageDiv.appendChild(img);
+    }
+
+    chatBox.appendChild(messageDiv);
+    scrollToBottom();
+  }
+
+  // Handle form submission
+  chatForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+    const message = messageInput.value.trim();
+    if (message === "") return;
+
+    fetch("{% url 'send_message' recipient.id %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ content: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        appendMessage("{{ request.user.username }}", "{{ request.user.profile.profile_pic.url }}", message, "Just now", true);
+        messageInput.value = "";
+      } else {
+        alert("Failed to send message.");
+      }
+    })
+    .catch(error => {
+      console.error("Error sending message:", error);
+    });
+  });
+
+  // Periodically fetch new messages every second
+  function fetchMessages() {
+    fetch("{% url 'fetch_messages' recipient.id %}")
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          chatBox.innerHTML = ""; // Clear current messages
+          data.messages.forEach(message => {
+            const isCurrentUser = message.sender === "{{ request.user.username }}";
+            appendMessage(
+              message.sender,
+              message.sender_profile_pic,
+              message.content,
+              message.timestamp,
+              isCurrentUser
+            );
+          });
+          scrollToBottom(); // Scroll to the latest message
+        }
+      })
+      .catch(error => console.error("Error fetching messages:", error));
+  }
+
+  setInterval(fetchMessages, 1000); // Fetch new messages every second
+  scrollToBottom();  // Scroll to the bottom initially
+});
+</script>
+{% endblock %}
