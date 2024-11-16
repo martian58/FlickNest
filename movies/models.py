@@ -54,6 +54,7 @@ class Movie(models.Model):
 
 
 class WatchRoom(models.Model):
+    creator = models.ForeignKey(User, related_name='room_creator', on_delete=models.CASCADE)
     room_name = models.CharField(max_length=200)
     users_in_room = models.ManyToManyField(User, related_name='users_in_room', blank=True)
     movie_in_room = models.ForeignKey(Movie, related_name='movie_in_room', on_delete=models.CASCADE)
@@ -65,7 +66,8 @@ class WatchRoom(models.Model):
         """Add a user to the room if not already in."""
         if not self.users_in_room.filter(id=user.id).exists():
             self.users_in_room.add(user)
-    
+    def get_creator(self):
+        return self.creator
 
     def remove_user_from_room(self, user):
         """Remove a user from room if it is in."""

@@ -19,10 +19,27 @@
                     <h2 class="text-lg font-semibold text-yellow-400">{{ room.room_name }}</h2>
                     <p class="text-gray-400">Users in Room: <span class="text-gray-200">{{ room.get_users_in_room_count }}</span></p>
                     
-                    <!-- Go to Room Button -->
-                    <a href="{% url 'watch_room' room.id %}" class="block mt-4 text-center bg-yellow-500 text-gray-900 font-semibold py-2 rounded-md hover:bg-yellow-400 transition-colors">
-                        Go to Room
-                    </a>
+                    <!-- Buttons -->
+                    <div class="mt-4 flex justify-between space-x-4">
+                        <!-- Go to Room Button -->
+                        <a href="{% url 'watch_room' room.id %}" class="flex-1 text-center bg-yellow-500 text-gray-900 font-semibold py-2 rounded-md hover:bg-yellow-400 transition-colors">
+                            Go to Room
+                        </a>
+                        {% if request.user == room.creator %}
+                        <!-- Remove Room Button -->
+                        <button 
+                            class="flex-1 text-center bg-red-600 text-white font-semibold py-2 rounded-md hover:bg-red-500 transition-colors remove-room-btn"
+                            data-room-id="{{ room.id }}">
+                            Remove Room
+                        </button>
+                        {% else %}
+                        <button 
+                            class="flex-1 text-center bg-pink-600 text-white font-semibold py-2 rounded-md hover:bg-pink-500 transition-colors leave-room-btn"
+                            data-room-id="{{ room.id }}">
+                            Leave Room
+                        </button>                      
+                        {% endif %}
+                    </div>
                 </div>
             {% endfor %}
         </div>
@@ -30,4 +47,68 @@
         <p class="text-center text-gray-400 mt-6">You are not part of any watch rooms yet.</p>
     {% endif %}
 </div>
+
+<!-- JavaScript for Remove Room -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const removeRoomButtons = document.querySelectorAll('.remove-room-btn');
+
+    removeRoomButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const roomId = this.getAttribute('data-room-id');
+            
+            // Confirmation before removing the room
+            if (confirm('Are you sure you want to remove this room?')) {
+                fetch(`/movies/watch_rooms/remove/${roomId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload(); // Reload the page to reflect changes
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+
+    const leaveRoomButtons = document.querySelectorAll('.leave-room-btn');
+
+    leaveRoomButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const roomId = this.getAttribute('data-room-id');
+            
+            // Confirmation before removing the room
+            if (confirm('Are you sure you want to leave this room?')) {
+                fetch(`/movies/watch_rooms/leave/${roomId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload(); // Reload the page to reflect changes
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+
+});
+</script>
 {% endblock %}
