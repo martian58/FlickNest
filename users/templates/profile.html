@@ -42,12 +42,22 @@
     <!-- Profile Actions -->
     <div class="flex justify-center space-x-4 mb-6">
         {% if request.user.id != user.id %}
+        {% if user in request.user.profile.friends.all %}
+        <button   
+              id="remove-friend-btn" 
+              data-user-id="{{ user.id }}" 
+              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">
+              Remove Friend
+          </button>
+        {% else %}
         <button   
               id="add-friend-btn" 
               data-user-id="{{ user.id }}" 
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">
               Add Friend
           </button>
+        {% endif %}
+
         <a href={% url 'chat_view' user.id %} class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600">Send Message</button>
         {% endif %}
     </div>
@@ -117,30 +127,66 @@
 
 <!-- JavaScript for AJAX Request -->
 <script>
-document.getElementById('add-friend-btn').addEventListener('click', function() {
-    const userId = this.getAttribute('data-user-id');
-
-    fetch(`/users/add_friend/${userId}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({ user_id: userId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message); // Display a success message
-            this.classList.add('bg-green-500'); // Change button color to indicate success
-            this.textContent = 'Friend Added'; // Change button text
-            this.disabled = true; // Disable button
-        } else {
-            alert(data.message); // Display error message if any
-        }
-    })
-    .catch(error => console.error('Error:', error));
-});
-</script>
+  document.addEventListener('DOMContentLoaded', () => {
+      // Add Friend Button
+      const addFriendButton = document.querySelector('#add-friend-btn');
+      if (addFriendButton) {
+          addFriendButton.addEventListener('click', function () {
+              const userId = this.getAttribute('data-user-id');
+  
+              fetch(`/users/add_friend/${userId}/`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': '{{ csrf_token }}',
+                  },
+                  body: JSON.stringify({ user_id: userId }),
+              })
+                  .then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert(data.message); // Display a success message
+                          this.classList.add('bg-green-500'); // Change button color to indicate success
+                          this.textContent = 'Friend Added'; // Change button text
+                          this.disabled = true; // Disable button
+                      } else {
+                          alert(data.message); // Display error message
+                      }
+                  })
+                  .catch(error => console.error('Error:', error));
+          });
+      }
+  
+      // Remove Friend Button
+      const removeFriendButton = document.querySelector('#remove-friend-btn');
+      if (removeFriendButton) {
+          removeFriendButton.addEventListener('click', function () {
+              const userId = this.getAttribute('data-user-id');
+  
+              fetch(`/users/remove_friend/${userId}/`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': '{{ csrf_token }}',
+                  },
+                  body: JSON.stringify({ user_id: userId }),
+              })
+                  .then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert(data.message); // Display a success message
+                          this.classList.add('bg-red-500'); // Change button color to indicate success
+                          this.textContent = 'Friend Removed'; // Change button text
+                          this.disabled = true; // Disable button
+                      } else {
+                          alert(data.message); // Display error message
+                      }
+                  })
+                  .catch(error => console.error('Error:', error));
+          });
+      }
+  });
+  </script>
+  
 
 {% endblock %}

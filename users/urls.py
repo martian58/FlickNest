@@ -9,6 +9,7 @@ urlpatterns = [
     path('find/', views.find_users, name="find-users"),
     path('search-users/', views.search_users, name='search_users'),
     path('add_friend/<int:user_id>/', views.add_friend, name='add_friend'),
+    path('remove_friend/<int:user_id>/', views.remove_friend, name='remove_friend'),
     path('friends/<int:user_id>/', views.friend_list, name='friend_list'),
     path('chat/<int:recipient_id>', views.chat_view, name='chat_view'),
     path('send_message/<int:recipient_id>/', views.send_message, name='send_message'),
