@@ -89,7 +89,7 @@ def create_watch_room(request):
                 return JsonResponse({"success": False, "error": "Selected movie does not exist."})
 
             # Create the watch room
-            watch_room = WatchRoom.objects.create(room_name=room_name, movie_in_room=movie)
+            watch_room = WatchRoom.objects.create(room_name=room_name, movie_in_room=movie, creator=request.user)
             watch_room.add_user_to_room(request.user)
 
             # Add selected users to the room
@@ -104,8 +104,50 @@ def create_watch_room(request):
             return JsonResponse({"success": False, "error": "Invalid JSON data"})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
+@login_required
+@csrf_exempt
+def remove_watch_room(request, room_id):
+    if request.method == "POST":
+        try:
+            # Retrieve the watch room or return a 404 if it doesn't exist
+            watch_room = get_object_or_404(WatchRoom, id=room_id)
 
+            # Check if the user is authorized to remove the room
+            if request.user != watch_room.creator: 
+                return JsonResponse({"success": False, "error": "You are not authorized to remove this room."}, status=403)
 
+            # Delete the watch room
+            watch_room.delete()
+
+            # Respond with success
+            return JsonResponse({"success": True, "message": "Watch room successfully removed."})
+        
+        except Exception as e:
+            # Handle unexpected errors
+            return JsonResponse({"success": False, "error": f"An error occurred: {str(e)}"}, status=500)
+    else:
+        # Handle non-POST requests
+        return JsonResponse({"success": False, "error": "Invalid request method."}, status=400)
+    
+@login_required
+@csrf_exempt
+def leave_watch_room(request, room_id):
+    if request.method == "POST":
+        try:
+            watch_room = get_object_or_404(WatchRoom, id=room_id)
+
+            if request.user not in watch_room.users_in_room.all():
+                return JsonResponse({"success": False, "error": "You are not in this room."}, status=403)
+
+            watch_room.users_in_room.remove(request.user)
+
+            return JsonResponse({"success": True, "message": "You left the room successfully."})
+        
+        except Exception as e:
+            return JsonResponse({"success": False, "error": f"An error occurred: {str(e)}"}, status=500)
+    else:
+        return JsonResponse({"success": False, "error": "Invalid request method."}, status=400)
+    
 @login_required
 def watch_rooms(request):
     user = request.user
