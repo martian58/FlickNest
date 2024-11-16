@@ -81,7 +81,23 @@ def add_friend(request, user_id):
         return JsonResponse({'success': False, 'message': f"You are already friends with {user_to_add.username}."})
     else:
         profile.friends.add(user_to_add)
+        user_to_add.profile.friends.add(request.user)
         return JsonResponse({'success': True, 'message': f"You are now friends with {user_to_add.username}."})
+    
+@login_required
+def remove_friend(request, user_id):
+    # Get the user to be added
+    user_to_remove = get_object_or_404(User, id=user_id)
+    
+    # Get the current user's profile
+    profile = request.user.profile
+
+    if user_to_remove in profile.friends.all():
+        profile.friends.remove(user_to_remove)
+        user_to_remove.profile.friends.remove(request.user)
+        return JsonResponse({'success': True, 'message': f"You removed {user_to_remove.username} from your friends."})
+    else:
+        return JsonResponse({'success': False, 'message': f"You are not friends with {user_to_remove.username}."})
 
 
 
