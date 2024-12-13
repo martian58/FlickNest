@@ -4,33 +4,59 @@
 {% block title %}Chat Room{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-6 bg-gray-900 rounded-lg shadow-lg h-[80vh] flex flex-col">
-  <!-- Chat Header -->
-  <div class="flex items-center justify-between border-b border-gray-700 pb-3 mb-4">
-    <h1 class="text-2xl font-bold text-gray-100">Chat Room</h1>
-    <p class="text-sm text-gray-400">Welcome, {{ request.user.username }}!</p>
+<div class="container mx-auto p-6 bg-gray-900 rounded-lg shadow-lg h-[80vh] flex">
+  <!-- Friends List -->
+  <div class="w-1/4 bg-gray-800 rounded-lg p-4 mr-4 overflow-y-auto">
+    <h2 class="text-xl font-bold text-gray-100 mb-4">Friends</h2>
+    <ul class="space-y-4">
+      {% for friend in request.user.profile.friends.all %}
+        <li class="flex items-center space-x-3 hover:bg-blue-800">
+        {% if friend.profile.profile_pic %}
+          <img src="{{ friend.profile.profile_pic.url }}" alt="Friend Avatar" class="w-10 h-10 rounded-full">
+        {% endif %}
+          <div>
+            <p class="text-gray-200 font-semibold">{{ friend.username }}</p>
+            <p class="text-gray-400 text-sm">
+              {% if friend.is_online %}
+                <span class="text-green-400">Online</span>
+              {% else %}
+                Offline
+              {% endif %}
+            </p>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
   </div>
 
-  <!-- Chat Messages -->
-  <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-800 rounded-lg">
-    {% for message in messages %}
-      <div class="flex items-start space-x-4 {% if message.sender == request.user %} justify-end {% endif %}">
-        {% if message.sender != request.user %}
-          <img src="{{ message.sender.profile.profile_pic.url }}" alt="User Avatar" class="w-10 h-10 rounded-full">
-        {% endif %}
-        <div class="{% if message.sender == request.user %}text-right{% endif %}">
-          <p class="text-sm font-semibold text-gray-200">{{ message.sender.username }}</p>
-          <div class="{% if message.sender == request.user %} bg-blue-600 {% else %} bg-gray-700 {% endif %} text-gray-200 rounded-lg p-3 max-w-xs">
-            <p>{{ message.content }}</p>
+  <!-- Chat Section -->
+  <div class="flex-1 bg-gray-900 rounded-lg flex flex-col">
+    <!-- Chat Header -->
+    <div class="flex items-center justify-between border-b border-gray-700 pb-3 mb-4">
+      <h1 class="text-2xl font-bold text-gray-100">Chat Room</h1>
+      <p class="text-sm text-gray-400">Welcome, {{ request.user.username }}!</p>
+    </div>
+
+    <!-- Chat Messages -->
+    <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-800 rounded-lg">
+      {% for message in messages %}
+        <div class="flex items-start space-x-4 {% if message.sender == request.user %} justify-end {% endif %}">
+          {% if message.sender != request.user %}
+            <img src="{{ message.sender.profile.profile_pic.url }}" alt="User Avatar" class="w-10 h-10 rounded-full">
+          {% endif %}
+          <div class="{% if message.sender == request.user %}text-right{% endif %}">
+            <p class="text-sm font-semibold text-gray-200">{{ message.sender.username }}</p>
+            <div class="{% if message.sender == request.user %} bg-blue-600 {% else %} bg-gray-700 {% endif %} text-gray-200 rounded-lg p-3 max-w-xs">
+              <p>{{ message.content }}</p>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">{{ message.timestamp|date:"H:i" }}</p>
           </div>
-          <p class="text-xs text-gray-400 mt-1">{{ message.timestamp|date:"H:i" }}</p>
+          {% if message.sender == request.user %}
+            <img src="{{ request.user.profile.profile_pic.url }}" alt="User Avatar" class="w-10 h-10 rounded-full">
+          {% endif %}
         </div>
-        {% if message.sender == request.user %}
-          <img src="{{ request.user.profile.profile_pic.url }}" alt="User Avatar" class="w-10 h-10 rounded-full">
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
 
   <!-- Chat Input -->
   <form id="chat-form" class="mt-4 flex space-x-2">
